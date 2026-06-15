@@ -11,9 +11,11 @@
 body { 
 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 text-align: center; 
-background: #fdf5ff; 
+background: linear-gradient(135deg, #f0f4f8 0%, #e6fffa 100%); 
 padding: 40px 20px; 
 color: #333; 
+min-height: 100vh;
+box-sizing: border-box;
 } 
 
 .container { 
@@ -22,13 +24,15 @@ margin: 0 auto;
 background: white; 
 padding: 30px; 
 border-radius: 20px; 
-box-shadow: 0 8px 25px rgba(249, 176, 252, 0.15); 
-border: 2px solid #F9B0FC; 
+box-shadow: 0 8px 30px rgba(74, 144, 226, 0.1); 
+border: 2px solid #b3d4fc; 
 } 
 
 h2 { 
-color: #F9B0FC; 
+color: #4A90E2; 
 margin-bottom: 20px; 
+font-weight: 800;
+letter-spacing: 0.5px;
 } 
 
 .input-group { 
@@ -41,17 +45,50 @@ display: block;
 font-weight: bold; 
 margin-bottom: 5px; 
 font-size: 14px; 
-color: #F9B0FC; 
+color: #4A90E2; 
 } 
 
-input[type="file"] { 
+input[type="file"], input[type="text"] { 
 width: 100%; 
 padding: 12px; 
 font-size: 16px; 
-border: 2px solid #fae1ff; 
+border: 2px solid #b3d4fc; 
 border-radius: 12px; 
 box-sizing: border-box; 
+background-color: #fcfdfe;
+transition: border-color 0.2s;
 } 
+
+input[type="text"]:focus {
+border-color: #4A90E2;
+outline: none;
+}
+
+.color-picker-container {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+input[type="color"] {
+-webkit-appearance: none;
+border: none;
+width: 50px;
+height: 50px;
+border-radius: 12px;
+cursor: pointer;
+background: none;
+padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+border: 2px solid #b3d4fc;
+border-radius: 12px;
+}
 
 .btn-container { 
 margin-top: 20px; 
@@ -69,33 +106,37 @@ margin: 5px;
 } 
 
 .btn-generate { 
-background-color: #F9B0FC; 
+background-color: #4A90E2; 
 color: white; 
+box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 } 
 
 .btn-generate:hover { 
-background-color: #f692fa; 
+background-color: #357ABD; 
 transform: scale(1.03); 
 } 
 
 .btn-generate:disabled { 
 background-color: #ccc; 
+box-shadow: none;
 cursor: not-allowed; 
 } 
 
 .btn-download { 
-background-color: #333; 
+background-color: #4ed8da; 
 color: white; 
+box-shadow: 0 4px 12px rgba(78, 216, 218, 0.3);
 } 
 
 .btn-download:hover { 
-background-color: #555; 
+background-color: #3cbabb; 
+transform: scale(1.03);
 } 
 
 #statusText { 
 margin-top: 15px; 
 font-weight: bold; 
-color: #666; 
+color: #555; 
 } 
 
 #canvasContainer { 
@@ -109,7 +150,7 @@ width: 450px;
 height: auto; 
 border-radius: 15px; 
 background: white; 
-box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
 } 
 </style> 
 </head> 
@@ -128,6 +169,14 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 <input type="file" id="logoInput" accept="image/*"> 
 </div> 
 
+<div class="input-group"> 
+<label for="colorPicker">Scegli il Colore del QR Code:</label> 
+<div class="color-picker-container">
+<input type="color" id="colorPicker" value="#4A90E2" oninput="aggiornaInputTesto(this.value)"> 
+<input type="text" id="colorHexInput" value="" placeholder="Scegli il colore del tuo qr... (ESADECIMALE)" oninput="aggiornaTavolozza(this.value)">
+</div>
+</div>
+
 <div class="btn-container"> 
 <button id="btnGen" class="btn-generate" onclick="caricaEGenera()">Carica e Genera QR</button> 
 <button class="btn-download" onclick="scaricaQR()">Scarica PNG</button> 
@@ -141,6 +190,20 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 </div> 
 
 <script> 
+function aggiornaInputTesto(colore) {
+document.getElementById("colorHexInput").value = colore.toUpperCase();
+}
+
+function aggiornaTavolozza(valore) {
+let hex = valore.trim();
+if (hex.length === 6 && !hex.startsWith("#")) {
+hex = "#" + hex;
+}
+if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+document.getElementById("colorPicker").value = hex;
+}
+}
+
 async function caricaEGenera() { 
 const videoFileInput = document.getElementById("videoFileInput"); 
 const statusText = document.getElementById("statusText"); 
@@ -221,7 +284,13 @@ ctx.imageSmoothingQuality = 'high';
 ctx.fillStyle = '#ffffff'; 
 ctx.fillRect(0, 0, canvas.width, canvas.height); 
 
-const mainColor = "#F9B0FC"; 
+let mainColor = document.getElementById("colorHexInput").value.trim();
+if (mainColor.length === 6 && !mainColor.startsWith("#")) {
+mainColor = "#" + mainColor;
+}
+if (!/^#[0-9A-Fa-f]{6}$/.test(mainColor)) {
+mainColor = document.getElementById("colorPicker").value;
+}
 
 function disegnaOcchioContinuo(startX, startY) { 
 const size7 = cellSize * 7; 
